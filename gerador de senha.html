@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Senhas Fortes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0f0f0f;
+            --bg-dark-secondary: #1a1a1a;
+            --bg-dark-card: #242424;
+            --bg-light: #f0f0f0;
+            --bg-light-secondary: #ffffff;
+            --bg-light-card: #ffffff;
+            --text-dark: #ffffff;
+            --text-dark-secondary: #a0a0a0;
+            --text-light: #1a1a1a;
+            --text-light-secondary: #666666;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border-radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            background: var(--bg-light);
+            color: var(--text-light);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body.dark-mode {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        /* Background Pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        /* Language and Theme Controls */
+        .top-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 12px;
+            z-index: 1000;
+        }
+
+        .control-button {
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-light-secondary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dark-mode .control-button {
+            background: var(--bg-dark-card);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .dark-mode .control-button:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .control-button:active {
+            transform: translateY(0);
+        }
+
+        .flag-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+
+        .theme-icon {
+            font-size: 20px;
+        }
+
+        /* Main Container */
+        .main-container {
+            width: 100%;
+            max-width: 480px;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            background: var(--bg-light-card);
+            border-radius: var(--border-radius);
+            padding: 32px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+            transition: var(--transition);
+        }
+
+        .dark-mode .card {
+            background: var(--bg-dark-card);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .title {
+            font-size: clamp(24px, 5vw, 32px);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--text-light-secondary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .dark-mode .subtitle {
+            color: var(--text-dark-secondary);
+        }
+
+        /* Password Display */
+        .password-container {
+            background: var(--bg-light);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 28px;
+            position: relative;
+            border: 2px solid transparent;
+            transition: var(--transition);
+        }
+
+        .dark-mode .password-container {
+            background: var(--bg-dark-secondary);
+        }
+
+        .password-container:hover {
+            border-color: var(--primary);
+        }
+
+        .password-display {
+            font-family: 'Courier New', monospace;
+            font-size: clamp(16px, 3.5vw, 20px);
+            word-break: break-all;
+            text-align: center;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .dark-mode .password-display {
+            color: var(--text-dark);
+        }
+
+        .password-placeholder {
+            color: var(--text-light-secondary);
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            font-weight: 400;
+        }
+
+        .dark-mode .password-placeholder {
+            color: var(--text-dark-secondary);
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 50%;
+            right: 16px;
+            transform: translateY(-50%);
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .password-container:hover .copy-button {
+            opacity: 1;
+        }
+
+        .copy-button:hover {
+            background: var(--primary-hover);
+        }
+
+        .copy-button.copied {
+            background: var(--success);
+        }
+
+        /* Options Section */
+        .options-section {
+            margin-bottom: 28px;
+        }
+
+        .length-control {
+            margin-bottom: 24px;
+        }
+
+        .length-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .length-label {
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        .length-value {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--bg-light);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .dark-mode .slider {
+            background: var(--bg-dark-secondary);
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.1);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            border: none;
+            transition: var(--transition);
+        }
+
+        .slider::-moz-range-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Checkbox Options */
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--bg-light);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .dark-mode .checkbox-item {
+            background: var(--bg-dark-secondary);
+        }
+
+        .checkbox-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .checkbox-input {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .checkbox-label {
+            flex: 1;
+            font-size: 15px;
+            font-weight: 500;
+            user-select: none;
+        }
+
+        /* Generate Button */
+        .generate-button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .generate-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .generate-button:active::before {
+            width: 600px;
+            height: 600px;
+        }
+
+        .generate-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+        }
+
+        .generate-button:active {
+            transform: translateY(0);
+        }
+
+        /* Strength Indicator */
+        .strength-section {
+            margin-top: 24px;
+        }
+
+        .strength-bar-container {
+            height: 8px;
+            background: var(--bg-light);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .dark-mode .strength-bar-container {
+            background: var(--bg-dark-secondary);
+        }
+
+        .strength-bar {
+            height: 100%;
+            width: 0%;
+            border-radius: 4px;
+            transition: width 0.5s ease, background-color 0.5s ease;
+        }
+
+        .strength-text {
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 640px) {
+            body {
+                padding: 16px;
+            }
+
+            .top-controls {
+                top: 16px;
+                right: 16px;
+            }
+
+            .control-button {
+                width: 40px;
+                height: 40px;
+            }
+
+            .card {
+                padding: 24px;
+            }
+
+            .header {
+                margin-bottom: 24px;
+            }
+
+            .password-container {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+
+            .options-section {
+                margin-bottom: 20px;
+            }
+
+            .checkbox-item {
+                padding: 10px 14px;
+            }
+
+            .generate-button {
+                padding: 14px;
+                font-size: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                padding: 20px;
+            }
+
+            .title {
+                font-size: 24px;
+            }
+
+            .password-display {
+                font-size: 16px;
+            }
+
+            .copy-button {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+            }
+        }
+
+        .generate-button:focus {
+            outline: none;
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Controls -->
+    <div class="top-controls">
+        <button class="control-button" onclick="changeLanguage('pt-BR')" title="Português">
+            <svg class="flag-icon" viewBox="0 0 20 14" xmlns="http://www.w3.org/2000/svg">
+                <rect width="20" height="14" fill="#009c3b"/>
+                <path d="M1.7,7 L10,1.7 L18.3,7 L10,12.3 z" fill="#ffdf00"/>
+                <circle cx="10" cy="7" r="2.5" fill="#002776"/>
+            </svg>
+        </button>
+        <button class="control-button" onclick="changeLanguage('en-GB')" title="English">
+            <svg class="flag-icon" viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg">
+                <rect width="60" height="30" fill="#012169"/>
+                <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/>
+                <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4"/>
+                <path d="M30,0 L30,30 M0,15 L60,15" stroke="#fff" stroke-width="10"/>
+                <path d="M30,0 L30,30 M0,15 L60,15" stroke="#C8102E" stroke-width="6"/>
+            </svg>
+        </button>
+        <button class="control-button" onclick="toggleTheme()" title="Alternar tema">
+            <span class="theme-icon">🌙</span>
+        </button>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <div class="card">
+            <!-- Header -->
+            <div class="header">
+                <h1 class="title" data-i18n="title">Gerador de Senhas Fortes</h1>
+                <p class="subtitle" data-i18n="subtitle">Crie senhas seguras e únicas</p>
+            </div>
+
+            <!-- Password Display -->
+            <div class="password-container">
+                <div class="password-display" id="password">
+                    <span class="password-placeholder" data-i18n="placeholder">Clique em gerar para criar uma senha</span>
+                </div>
+                <button class="copy-button" onclick="copyPassword()" data-i18n="copy">Copiar</button>
+            </div>
+
+            <!-- Options -->
+            <div class="options-section">
+                <!-- Length Control -->
+                <div class="length-control">
+                    <div class="length-header">
+                        <label class="length-label" for="length" data-i18n="length">Comprimento</label>
+                        <span class="length-value" id="lengthValue">16</span>
+                    </div>
+                    <input type="range" id="length" class="slider" min="8" max="32" value="16" oninput="updateLength()">
+                </div>
+
+                <!-- Checkbox Options -->
+                <div class="checkbox-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="checkbox-input" id="uppercase" checked>
+                        <span class="checkbox-label" data-i18n="uppercase">Letras maiúsculas (A-Z)</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="checkbox-input" id="lowercase" checked>
+                        <span class="checkbox-label" data-i18n="lowercase">Letras minúsculas (a-z)</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="checkbox-input" id="numbers" checked>
+                        <span class="checkbox-label" data-i18n="numbers">Números (0-9)</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" class="checkbox-input" id="symbols" checked>
+                        <span class="checkbox-label" data-i18n="symbols">Símbolos (!@#$%)</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Generate Button -->
+            <button class="generate-button" onclick="generatePassword()" data-i18n="generate">
+                Gerar Senha
+            </button>
+
+            <!-- Strength Indicator -->
+            <div class="strength-section">
+                <div class="strength-bar-container">
+                    <div class="strength-bar" id="strengthBar"></div>
+                </div>
+                <div class="strength-text" id="strengthText"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Translations
+        const translations = {
+            'pt-BR': {
+                title: 'Gerador de Senhas Fortes',
+                subtitle: 'Crie senhas seguras e únicas',
+                placeholder: 'Clique em gerar para criar uma senha',
+                copy: 'Copiar',
+                copied: 'Copiado!',
+                length: 'Comprimento',
+                uppercase: 'Letras maiúsculas (A-Z)',
+                lowercase: 'Letras minúsculas (a-z)',
+                numbers: 'Números (0-9)',
+                symbols: 'Símbolos (!@#$%)',
+                generate: 'Gerar Senha',
+                weak: 'Senha Fraca',
+                medium: 'Senha Média',
+                strong: 'Senha Forte',
+                veryStrong: 'Senha Muito Forte',
+                error: 'Por favor, selecione pelo menos uma opção!'
+            },
+            'en-GB': {
+                title: 'Strong Password Generator',
+                subtitle: 'Create secure and unique passwords',
+                placeholder: 'Click generate to create a password',
+                copy: 'Copy',
+                copied: 'Copied!',
+                length: 'Length',
+                uppercase: 'Uppercase letters (A-Z)',
+                lowercase: 'Lowercase letters (a-z)',
+                numbers: 'Numbers (0-9)',
+                symbols: 'Symbols (!@#$%)',
+                generate: 'Generate Password',
+                weak: 'Weak Password',
+                medium: 'Medium Password',
+                strong: 'Strong Password',
+                veryStrong: 'Very Strong Password',
+                error: 'Please select at least one option!'
+            }
+        };
+
+        let currentLanguage = 'pt-BR';
+        let generatedPassword = '';
+
+        // Language Management
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            document.documentElement.lang = lang;
+            
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+
+            // Update strength text if password exists
+            if (generatedPassword) {
+                updateStrengthIndicator(generatedPassword);
+            }
+        }
+
+        // Theme Management
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const themeButton = document.querySelector('.theme-icon');
+            themeButton.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+        }
+
+        // Length Update
+        function updateLength() {
+            const length = document.getElementById('length').value;
+            document.getElementById('lengthValue').textContent = length;
+        }
+
+        // Password Generation
+        function generatePassword() {
+            const length = parseInt(document.getElementById('length').value);
+            const uppercase = document.getElementById('uppercase').checked;
+            const lowercase = document.getElementById('lowercase').checked;
+            const numbers = document.getElementById('numbers').checked;
+            const symbols = document.getElementById('symbols').checked;
+
+            let charset = '';
+            if (uppercase) charset += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            if (lowercase) charset += 'abcdefghijklmnopqrstuvwxyz';
+            if (numbers) charset += '0123456789';
+            if (symbols) charset += '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+            if (charset === '') {
+                alert(translations[currentLanguage].error);
+                return;
+            }
+
+            let password = '';
+            const array = new Uint32Array(length);
+            window.crypto.getRandomValues(array);
+            
+            for (let i = 0; i < length; i++) {
+                password += charset[array[i] % charset.length];
+            }
+
+            generatedPassword = password;
+            document.getElementById('password').textContent = password;
+            document.getElementById('password').classList.remove('password-placeholder');
+            
+            updateStrengthIndicator(password);
+            
+            // Animation
+            const passwordContainer = document.querySelector('.password-container');
+            passwordContainer.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                passwordContainer.style.transform = 'scale(1)';
+            }, 100);
+        }
+
+        // Copy Password
+        function copyPassword() {
+            const passwordElement = document.getElementById('password');
+            const password = passwordElement.textContent;
+            
+            if (password && !passwordElement.classList.contains('password-placeholder')) {
+                navigator.clipboard.writeText(password).then(() => {
+                    const copyButton = document.querySelector('.copy-button');
+                    const originalText = copyButton.textContent;
+                    copyButton.textContent = translations[currentLanguage].copied;
+                    copyButton.classList.add('copied');
+                    
+                    setTimeout(() => {
+                        copyButton.textContent = originalText;
+                        copyButton.classList.remove('copied');
+                    }, 2000);
+                });
+            }
+        }
+
+        // Strength Indicator
+        function updateStrengthIndicator(password) {
+            const strengthBar = document.getElementById('strengthBar');
+            const strengthText = document.getElementById('strengthText');
+            
+            let strength = 0;
+            const checks = [
+                password.length >= 12,
+                password.length >= 16,
+                /[a-z]/.test(password),
+                /[A-Z]/.test(password),
+                /[0-9]/.test(password),
+                /[^a-zA-Z0-9]/.test(password)
+            ];
+            
+            strength = checks.filter(check => check).length;
+            const percentage = (strength / 6) * 100;
+            
+            strengthBar.style.width = percentage + '%';
+
+            let strengthLevel, color;
+            if (percentage <= 33) {
+                strengthLevel = translations[currentLanguage].weak;
+                color = '#ef4444';
+            } else if (percentage <= 66) {
+                strengthLevel = translations[currentLanguage].medium;
+                color = '#f59e0b';
+            } else if (percentage < 100) {
+                strengthLevel = translations[currentLanguage].strong;
+                color = '#10b981';
+            } else {
+                strengthLevel = translations[currentLanguage].veryStrong;
+                color = '#06b6d4';
+            }
+
+            strengthBar.style.backgroundColor = color;
+            strengthText.textContent = strengthLevel;
+            strengthText.style.color = color;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            changeLanguage('pt-BR');
+            
+            // Check system theme preference
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                toggleTheme();
+            }
+
+            // Prevent form submission on Enter
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    generatePassword();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
