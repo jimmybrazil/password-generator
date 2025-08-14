@@ -1,4 +1,5 @@
 #password-generator
+
 **Português (Brasil):**  
 Este aplicativo web oferece um gerador de senhas seguras com interface temática cyberpunk. Desenvolvido com tecnologias modernas (HTML5, CSS3 e JavaScript), permite personalizar parâmetros de complexidade e suporta seis idiomas. A ferramenta garante a geração de credenciais robustas utilizando algoritmos criptográficos do navegador, contribuindo para a proteção de contas digitais.
 
